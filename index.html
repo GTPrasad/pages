@@ -188,4 +188,168 @@
 
 <script>
     const bugForm = document.getElementById('bug-form');
-    const columnToDo
+    const columnToDo = document.getElementById('column-To Do');
+    const columnInProgress = document.getElementById('column-In Progress');
+    const columnDone = document.getElementById('column-Done');
+
+    // Load bugs from localStorage when the page loads
+    window.onload = loadBugs;
+
+    // --- Core Logic: Bug Management ---
+
+    function createBugItem(bug) {
+        const bugItem = document.createElement('div');
+        bugItem.className = `bug-item priority-${bug.priority} status-${bug.status.replace(/\s/g, '-')}`;
+        bugItem.id = `bug-${bug.id}`;
+
+        const details = document.createElement('div');
+        details.className = 'bug-details';
+        details.innerHTML = `
+            ${bug.description}
+            <small>(Priority: ${bug.priority}, Assigned: ${bug.assigned || 'Unassigned'})</small>
+        `;
+        bugItem.appendChild(details);
+
+        const actions = document.createElement('div');
+        actions.className = 'bug-actions';
+
+        // Add action buttons based on current status
+        if (bug.status !== 'To Do') {
+            const btnToDo = createActionButton('To Do', 'btn-to-do', bug.id);
+            actions.appendChild(btnToDo);
+        }
+        if (bug.status !== 'In Progress') {
+            const btnInProgress = createActionButton('In Progress', 'btn-in-progress', bug.id);
+            actions.appendChild(btnInProgress);
+        }
+        if (bug.status !== 'Done') {
+            const btnDone = createActionButton('Done', 'btn-done', bug.id);
+            actions.appendChild(btnDone);
+        }
+
+        bugItem.appendChild(actions);
+
+        // Add Comments Area
+        const commentArea = document.createElement('div');
+        commentArea.className = 'comment-area';
+        commentArea.innerHTML = `
+            <p><strong>Comments:</strong></p>
+            <div id="comments-list-${bug.id}">
+                ${bug.comments.map(c => `<p style="margin: 3px 0; border-left: 2px solid #ccc; padding-left: 5px; color: #555;">${c}</p>`).join('')}
+            </div>
+            <textarea id="comment-input-${bug.id}" class="comment-input" placeholder="Add a comment..."></textarea>
+            <button class="comment-button" data-bug-id="${bug.id}">Add Comment</button>
+        `;
+        bugItem.appendChild(commentArea);
+
+        // Attach event listener for comment button
+        commentArea.querySelector('.comment-button').addEventListener('click', handleAddComment);
+
+        return bugItem;
+    }
+
+    function createActionButton(status, className, bugId) {
+        const button = document.createElement('button');
+        button.className = className;
+        button.textContent = `Move to ${status}`;
+        button.dataset.bugId = bugId;
+        button.dataset.newStatus = status;
+        button.addEventListener('click', handleStatusChange);
+        return button;
+    }
+
+    function renderBugs(bugs) {
+        // Clear columns before rendering
+        columnToDo.innerHTML = '';
+        columnInProgress.innerHTML = '';
+        columnDone.innerHTML = '';
+
+        bugs.forEach(bug => {
+            const bugItem = createBugItem(bug);
+            if (bug.status === 'To Do') {
+                columnToDo.appendChild(bugItem);
+            } else if (bug.status === 'In Progress') {
+                columnInProgress.appendChild(bugItem);
+            } else if (bug.status === 'Done') {
+                columnDone.appendChild(bugItem);
+            }
+        });
+    }
+
+    function loadBugs() {
+        const bugs = JSON.parse(localStorage.getItem('bugs')) || [];
+        renderBugs(bugs);
+    }
+
+    function saveBugs(bugs) {
+        localStorage.setItem('bugs', JSON.stringify(bugs));
+        loadBugs(); // Re-render the list
+    }
+
+    // --- Event Handlers ---
+
+    bugForm.addEventListener('submit', function(e) {
+        e.preventDefault(); // Crucial: Prevents the page reload
+
+        const description = document.getElementById('bug-description').value.trim();
+        const priority = document.getElementById('bug-priority').value;
+        const assigned = document.getElementById('bug-assigned').value.trim();
+
+        if (!description || !priority) {
+            alert('Please provide a description and select a priority.');
+            return;
+        }
+
+        const newBug = {
+            id: Date.now(), // Use timestamp for a unique ID
+            description: description,
+            priority: priority,
+            assigned: assigned,
+            status: 'To Do', // Default status
+            comments: []
+        };
+
+        const bugs = JSON.parse(localStorage.getItem('bugs')) || [];
+        bugs.push(newBug);
+        saveBugs(bugs);
+
+        // Clear the form fields
+        bugForm.reset();
+    });
+
+    function handleStatusChange(e) {
+        const bugId = parseInt(e.target.dataset.bugId);
+        const newStatus = e.target.dataset.newStatus;
+        const bugs = JSON.parse(localStorage.getItem('bugs'));
+
+        const bugIndex = bugs.findIndex(bug => bug.id === bugId);
+        if (bugIndex > -1) {
+            bugs[bugIndex].status = newStatus;
+            saveBugs(bugs);
+        }
+    }
+
+    function handleAddComment(e) {
+        const bugId = parseInt(e.target.dataset.bugId);
+        const commentInput = document.getElementById(`comment-input-${bugId}`);
+        const commentText = commentInput.value.trim();
+
+        if (!commentText) return;
+
+        const bugs = JSON.parse(localStorage.getItem('bugs'));
+        const bugIndex = bugs.findIndex(bug => bug.id === bugId);
+
+        if (bugIndex > -1) {
+            // Add comment to the bug object
+            bugs[bugIndex].comments.push(commentText);
+            saveBugs(bugs);
+
+            // Clear the comment input
+            commentInput.value = '';
+        }
+    }
+
+</script>
+
+</body>
+</html>
