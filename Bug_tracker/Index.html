@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Bug Tracker</title>
+    <style>
+        /* --- CSS for Styling (Same as before, only adding comment styling) --- */
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+
+        header {
+            text-align: center;
+            padding: 10px 0;
+            background-color: #e0e6e9;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* Bug Input Form Styling */
+        #bug-form {
+            display: grid;
+            grid-template-columns: 3fr 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #bug-form input, #bug-form select, #bug-form button {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        #bug-form button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #bug-form button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Bug List Styling */
+        #bug-list {
+            display: flex;
+            gap: 20px;
+        }
+
+        .bug-column {
+            flex: 1;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .bug-column h3 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            text-align: center;
+        }
+
+        .bug-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        /* Priority-based color coding */
+        .priority-High { background-color: #ffdddd; border-left: 5px solid #d9534f; }
+        .priority-Medium { background-color: #fff8dd; border-left: 5px solid #f0ad4e; }
+        .priority-Low { background-color: #d9edf7; border-left: 5px solid #5bc0de; }
+
+        /* Done state styling */
+        .status-Done {
+            background-color: #dff0d8 !important; /* Override priority color */
+            border-left: 5px solid #5cb85c !important;
+            text-decoration: line-through;
+            opacity: 0.9;
+        }
+
+        .bug-details {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .bug-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .bug-actions button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        /* Button colors */
+        .btn-to-do { background-color: #5bc0de; color: white; }
+        .btn-in-progress { background-color: #f0ad4e; color: white; }
+        .btn-done { background-color: #5cb85c; color: white; }
+
+        /* Comments Styling */
+        .comment-area {
+            margin-top: 10px;
+            padding-top: 5px;
+            border-top: 1px dashed #aaa;
+            font-size: 0.9em;
+        }
+
+        .comment-input {
+            width: calc(100% - 10px);
+            padding: 5px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            resize: vertical;
+        }
+
+        .comment-button {
+            background-color: #007bff;
+            color: white;
+            padding: 5px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 5px;
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🐞 Simple Bug Tracker</h1>
+</header>
+
+<form id="bug-form">
+    <input type="text" id="bug-description" placeholder="Bug Description (e.g., Login button not working)" required>
+
+    <select id="bug-priority" required>
+        <option value="" disabled selected>Select Priority</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+    </select>
+
+    <input type="text" id="bug-assigned" placeholder="Assigned To (Optional)">
+
+    <button type="submit">Add Bug</button>
+</form>
+
+<hr>
+
+<div id="bug-list">
+    <div class="bug-column">
+        <h3>To Do (Open)</h3>
+        <div id="column-To Do"></div>
+    </div>
+    <div class="bug-column">
+        <h3>In Progress</h3>
+        <div id="column-In Progress"></div>
+    </div>
+    <div class="bug-column">
+        <h3>Done (Closed)</h3>
+        <div id="column-Done"></div>
+    </div>
+</div>
+
+<script>
+    const bugForm = document.getElementById('bug-form');
+    const columnToDo
